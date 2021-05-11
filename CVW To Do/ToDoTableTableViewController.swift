@@ -9,12 +9,11 @@ import UIKit
 
 class ToDoTableTableViewController: UITableViewController {
 
-    var toDos : [toDo] = []
+    var toDos : [ToDoCD] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        toDos = createToDos()
     }
 
     // MARK: - Table view data source
@@ -29,12 +28,14 @@ class ToDoTableTableViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
 
         let ToDo = toDos[indexPath.row]
-        if ToDo.important {
-            cell.textLabel?.text = "❗️" + ToDo.name
+        
+        if let name = ToDo.name{
+            if ToDo.important {
+                cell.textLabel?.text = "❗️" + name
           } else {
             cell.textLabel?.text = ToDo.name
           }
-
+        }
         return cell
     }
     
@@ -42,7 +43,7 @@ class ToDoTableTableViewController: UITableViewController {
     // MARK: - Navigation
 
     // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+       override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         // Get the new view controller using segue.destination.
         // Pass the selected object to the new view controller.
         if let addVC = segue.destination as? AddToDoViewController {
@@ -50,7 +51,7 @@ class ToDoTableTableViewController: UITableViewController {
          }
         
         if let completeVC = segue.destination as? CompleteToDoViewController {
-            if let toDo = sender as? toDo {
+            if let toDo = sender as? ToDoCD {
               completeVC.selectedToDo = toDo
               completeVC.previousVC = self
             }
@@ -64,8 +65,12 @@ class ToDoTableTableViewController: UITableViewController {
 
       performSegue(withIdentifier: "moveToComplete", sender: toDo)
     }
+
+        override func viewWillAppear(_ animated: Bool) {
+            getToDos()
+        }
     
-    func createToDos() -> [toDo] {
+    /*func createToDos() -> [toDo] {
 
       let swift = toDo()
       swift.name = "Learn Swift"
@@ -77,4 +82,15 @@ class ToDoTableTableViewController: UITableViewController {
 
       return [swift, dog]
     }
+     */
+    
+    func getToDos() {
+        if let context = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext {
+            if let coreDataToDos = try? context.fetch(ToDoCD.fetchRequest()) as? [ToDoCD] {
+                    toDos=coreDataToDos
+                    tableView.reloadData()
+                }
+          }
+    }
 }
+
